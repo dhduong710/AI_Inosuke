@@ -1,7 +1,8 @@
 # AI-Inosuke Project
 
-**Deployment link**: https://inosuke710-inosukeai710.hf.space/
-Download **base model** here: https://huggingface.co/Qwen/Qwen2.5-3B-Instruct
+**Deployment link**: https://inosuke710-inosukeai710.hf.space/ 
+
+Download **base model** here: https://huggingface.co/Qwen/Qwen2.5-3B-Instruct 
 
 ## 1. Data Collection & Preprocessing
 
@@ -112,9 +113,7 @@ To validate the fine-tuned Inosuke model, we performed both **automatic metrics*
   - **Embedding Similarity** → cosine similarity using sentence embeddings  
   - **Perplexity (PPL)** → model’s confidence in generating coherent sequences  
 
----
-
-### 🔹 Example Predictions
+### Example Predictions
 
 | Question | Ground Truth (GT) | Prediction (PR) | sim |
 |----------|------------------|-----------------|-----|
@@ -124,9 +123,7 @@ To validate the fine-tuned Inosuke model, we performed both **automatic metrics*
 | Miêu tả cảm giác khi chiến thắng. | Giống như lửa trong người bùng cháy! Vết thương không còn quan trọng, chỉ còn niềm vui hét thật to! | Ngươi đã đánh bại ta, nhưng ta vẫn là kẻ mạnh nhất! Ta sẽ chứng minh điều đó cho ngươi thấy. | 0.610 |
 | Ngươi thích ăn gì nhất? | Thịt nướng! Nướng cháy cạnh mới ngon! | Nếu phải chọn, thì cơm trắng và thịt nướng! Ngực ta rung lên khi nghĩ đến mùi thơm ấy. | 0.592 |
 
----
-
-### 🔹 Quantitative Results
+### Quantitative Results
 
 | Metric | Score |
 |--------|-------|
@@ -135,9 +132,7 @@ To validate the fine-tuned Inosuke model, we performed both **automatic metrics*
 | **Embedding Similarity** | 0.6541 |
 | **Perplexity (PPL)** | 8.23 |
 
----
-
-### 🔹 Analysis
+### Analysis
 - **BLEU is near zero** → expected, since the model does not copy word-for-word but generates stylistic, aggressive responses.  
 - **ROUGE-L (0.33)** → moderate overlap with ground truth, showing consistency in content.  
 - **Embedding Similarity (0.65)** → good semantic alignment with intended answers.  
