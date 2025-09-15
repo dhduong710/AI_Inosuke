@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatInosuke</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div id="introPopup" class="popup hidden">
+  <div class="popup-content intro-layout">
+
+    <div class="intro-image">
+      <img src="{{ url_for('static', filename='avatars/inosuke.png') }}" alt="Inosuke">
+    </div>
+
+
+    <div class="intro-text">
+      <h2>🐗 Hashibira Inosuke</h2>
+      <h3>Nhân vật trong bộ truyện <em>Thanh gươm diệt quỷ</em></h3>
+      <p><strong>Xuất thân:</strong> Một kiếm sĩ trong Sát quỷ đoàn, nổi bật với chiếc mặt nạ lợn rừng.</p>
+      <p><strong>Tính cách:</strong> Hung hăng, nóng nảy, luôn thích chiến đấu. Nói chuyện cộc lốc, ưa thách thức đối thủ.</p>
+
+      <hr style="margin: 18px 0; border: none; border-top: 1px solid #273627;">
+
+      <h2>🤖 ChatInosuke</h3>
+      <p>Chatbot AI này được xây dựng từ <strong>Qwen2.5-3B Instruct</strong>, tinh chỉnh với <strong>QLoRA 4-bit</strong>.<br></p>
+      <p>Bộ dữ liệu để tinh chỉnh gồm <strong>hơn 9000 mẫu tự soạn</strong>, giúp Chatbot phản hồi đúng tính cách.</p>
+      <p>Được phát triển bởi <strong>DHD</strong>.</p>
+
+      <div style="margin-top:18px; text-align:right;">
+        <button id="nextIntroBtn">Tiếp tục</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="avatarPopup" class="popup hidden">
+  <div class="popup-content">
+    <h2>Chọn Avatar của bạn</h2>
+    <div class="avatar-selection">
+      <span class="avatar-option" data-avatar="🧑">🧑</span>
+      <span class="avatar-option" data-avatar="👩">👩</span>
+      <span class="avatar-option" data-avatar="🤖">🤖</span>
+    </div>
+    <button id="startChatBtn">Bắt đầu Chat</button>
+  </div>
+</div>
+
+
+<div id="warningPopup" class="popup hidden">
+  <div class="popup-content warning">
+    <h2>⚠️ Chưa chọn Avatar</h2>
+    <p>Bạn cần chọn một avatar trước khi bắt đầu chat!</p>
+    <button id="closeWarningBtn">OK</button>
+  </div>
+</div>
+
+<div id="modePopup" class="popup hidden">
+  <div class="popup-content warning">
+    <h2>ℹ️ Thông báo</h2>
+    <p>Hiện tại, chatbot đang ở chế độ nhân vật, thể hiện rõ tính cách nhân vật mà không có nhiều kiến thức.</p>
+    <p>Nếu bạn muốn sử dụng chatbot ở chế độ học thuật thì vui lòng liên hệ với nhà phát triển.</p>
+    <p>Vì chế độ học thuật có thể mất nhiều phút để trả lời và chỉ phục vụ 1 người tại một thời điểm.</p>
+    <button class="closeWarningBtn" data-next="warningPopup1">OK</button>
+  </div>
+</div>
+
+
+<div id="warningPopup1" class="popup hidden">
+  <div class="popup-content warning">
+    <h2>⚠️ Cảnh báo</h2>
+    <p>Cách trả lời sẽ thô lỗ, hung hăng và đôi khi gay gắt. Hãy cân nhắc trước khi vào phần trò chuyện.</p>
+    <p>Thông tin có thể không chính xác, nội dung mang tính giải trí là chủ yếu.</p>
+    <button class="closeWarningBtn" data-next="chat">Tôi đã hiểu</button>
+  </div>
+</div>
+
+
+<div id="limitPopup" class="popup hidden">
+  <div class="popup-content warning">
+    <h2>⚠️ Hệ thống bận</h2>
+    <p>Đây là dự án cá nhân nên hiện chỉ phục vụ <strong>1 người tại một thời điểm</strong>.</p>
+    <p>Nếu bạn thấy thông báo này, vui lòng kiên nhẫn chờ đến lượt. Xin cảm ơn!</p>
+    <button id="closeLimitBtn">OK</button>
+  </div>
+</div>
+
+
+
+<div class="container">
+
+  <div class="sidebar">
+    <div class="sidebar-header">
+      🐗 <span class="logo-text">ChatInosuke</span>
+      <span class="info-btn" onclick="openIntro(false)" title="Giới thiệu">ℹ️</span>
+    </div>
+    <button id="new-chat-btn" onclick="newChat()">+ Đoạn chat mới</button>
+    <div id="chat-list"></div>
+  </div>
+
+
+  <div class="chat-area">
+    <div id="chat-box" class="chat-box"></div>
+    <div class="input-area">
+      <input id="user-input" type="text" placeholder="Nhập câu hỏi..." onkeypress="if(event.key==='Enter') sendMessage()">
+      <button onclick="sendMessage()">Gửi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let chats = [];
+let currentChatId = null;
+let userAvatar = "🧑";
+let selectedAvatar = null;
+let showAvatarAfterIntro = false;
+
+
+function newChat() {
+  const id = Date.now();
+  chats.push({ id, name: "Đoạn chat mới", messages: [] });
+  currentChatId = id;
+  renderChatList();
+  renderMessages();
+}
+
+function openChat(id) {
+  currentChatId = id;
+  renderMessages();
+  renderChatList();
+}
+
+function deleteChat(id) {
+  chats = chats.filter(c => c.id !== id);
+  if (currentChatId === id) currentChatId = chats.length ? chats[0].id : null;
+  renderChatList();
+  renderMessages();
+}
+
+function renameChat(id) {
+  const chat = chats.find(c => c.id === id);
+  if (!chat) return;
+  const nameSpan = document.querySelector(`#chat-${id} .chat-name`);
+  if (!nameSpan) return;
+
+  nameSpan.contentEditable = true;
+  nameSpan.focus();
+
+
+  const range = document.createRange();
+  range.selectNodeContents(nameSpan);
+  range.collapse(false);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+
+  nameSpan.onkeydown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      nameSpan.blur();
+    }
+  };
+  nameSpan.onblur = () => {
+    chat.name = nameSpan.innerText.trim() || "Đoạn chat";
+    nameSpan.contentEditable = false;
+    nameSpan.onkeydown = null;
+  };
+}
+
+function toggleMenu(id, event) {
+  event.stopPropagation();
+  const menu = document.getElementById(`menu-${id}`);
+  document.querySelectorAll(".chat-menu").forEach(m => {
+    if (m !== menu) m.style.display = "none";
+  });
+  menu.style.display = (menu.style.display === "block") ? "none" : "block";
+}
+
+function closeMenu(id) {
+  const menu = document.getElementById(`menu-${id}`);
+  if (menu) menu.style.display = "none";
+}
+
+async function sendMessage() {
+  const input = document.getElementById("user-input");
+  const message = input.value.trim();
+  if (!message) return;
+
+  const chat = chats.find(c => c.id === currentChatId);
+  if (!chat) return;
+
+  chat.messages.push({ from: "user", text: message, avatar: userAvatar });
+  input.value = "";
+  renderMessages();
+
+  chat.messages.push({ from: "loading", text: "..." });
+  renderMessages();
+
+  try {
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, avatar: userAvatar })
+    });
+
+    chat.messages = chat.messages.filter(m => m.from !== "loading");
+
+    if (res.ok) {
+      const data = await res.json();
+      chat.messages.push({ from: "inosuke", text: data.response });
+    } else {
+      chat.messages.push({ from: "inosuke", text: "⚠️ lỗi: không thể lấy phản hồi từ máy chủ." });
+    }
+  } catch (err) {
+    chat.messages = chat.messages.filter(m => m.from !== "loading");
+    chat.messages.push({ from: "inosuke", text: "⚠️ lỗi kết nối: vui lòng thử lại sau." });
+  }
+
+  renderMessages();
+}
+
+
+
+function renderChatList() {
+  const list = document.getElementById("chat-list");
+  list.innerHTML = "";
+  chats.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "chat-item" + (c.id === currentChatId ? " active" : "");
+    div.id = `chat-${c.id}`;
+    div.onmouseleave = () => closeMenu(c.id);
+    div.innerHTML = `
+      <span class="chat-name" onclick="openChat(${c.id})">${c.name}</span>
+      <span class="menu" onclick="toggleMenu(${c.id}, event)">⋮</span>
+      <div class="chat-menu" id="menu-${c.id}">
+        <div onclick="renameChat(${c.id})">Đổi tên</div>
+        <div onclick="deleteChat(${c.id})">Xóa</div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function renderMessages() {
+  const box = document.getElementById("chat-box");
+  box.innerHTML = "";
+  if (!currentChatId) return;
+  const chat = chats.find(c => c.id === currentChatId);
+  chat.messages.forEach(m => {
+    const div = document.createElement("div");
+    div.className = "message " + m.from;
+    if (m.from === "loading") {
+      div.innerHTML = `<div class="loading">Đây là dự án cá nhân, triển khai miễn phí nên Inosuke trả lời chậm (khoảng 1 phút). Mong bạn thông cảm...</div>`;
+    } else if (m.from === "user") {
+      div.innerHTML = `<span class="text">${m.text}</span><span class="avatar">${m.avatar}</span>`;
+    } else {
+      div.innerHTML = `<span class="avatar"><img src="/static/avatars/inosuke.jpg" alt="inosuke"></span><span class="text">${m.text}</span>`;
+    }
+    box.appendChild(div);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+
+
+function openIntro(wantAvatarNext = false) {
+  showAvatarAfterIntro = !!wantAvatarNext;
+  document.getElementById("introPopup").classList.remove("hidden");
+}
+
+document.getElementById("nextIntroBtn").onclick = () => {
+  document.getElementById("introPopup").classList.add("hidden");
+  if (showAvatarAfterIntro) {
+    document.getElementById("avatarPopup").classList.remove("hidden");
+  }
+};
+
+document.querySelectorAll(".avatar-option").forEach(opt => {
+  opt.addEventListener("click", () => {
+    document.querySelectorAll(".avatar-option").forEach(o => o.classList.remove("selected"));
+    opt.classList.add("selected");
+    selectedAvatar = opt.dataset.avatar;
+  });
+});
+
+document.getElementById("startChatBtn").onclick = () => {
+  if (!selectedAvatar) {
+    document.getElementById("warningPopup").classList.remove("hidden");
+    return;
+  }
+  userAvatar = selectedAvatar;
+  document.getElementById("avatarPopup").classList.add("hidden");
+  document.getElementById("warningPopup1").classList.remove("hidden");
+};
+
+
+document.getElementById("closeWarningBtn").onclick = () => {
+  document.getElementById("warningPopup").classList.add("hidden");
+};
+
+
+document.querySelectorAll(".closeWarningBtn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const next = btn.dataset.next;
+    btn.closest(".popup").classList.add("hidden");
+    if (next === "chat") {
+      newChat();
+    } else if (next) {
+      document.getElementById(next).classList.remove("hidden");
+    }
+  });
+});
+
+document.getElementById("closeLimitBtn").onclick = () => {
+  document.getElementById("limitPopup").classList.add("hidden");
+};
+
+document.getElementById("startChatBtn").onclick = () => {
+  if (!selectedAvatar) {
+    document.getElementById("warningPopup").classList.remove("hidden");
+    return;
+  }
+  userAvatar = selectedAvatar;
+  document.getElementById("avatarPopup").classList.add("hidden");
+  document.getElementById("modePopup").classList.remove("hidden"); 
+};
+
+window.onload = () => {
+  openIntro(true);
+};
+</script>
+
+</body>
+</html>
