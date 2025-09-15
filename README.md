@@ -1,6 +1,7 @@
 # AI-Inosuke Project
 
 **Deployment link**: https://inosuke710-inosukeai710.hf.space/
+Download **base model** here: https://huggingface.co/Qwen/Qwen2.5-3B-Instruct
 
 ## 1. Data Collection & Preprocessing
 
@@ -99,7 +100,54 @@ Both training and evaluation loss decrease steadily → good convergence, no maj
 
 ---
 
-## 4. Deployment
+## 4. Testing & Evaluation
+
+To validate the fine-tuned Inosuke model, we performed both **automatic metrics** and **qualitative inspection**.
+
+### Test Setup
+- **Dataset**: Held-out test split (10%)  
+- **Metrics**:
+  - **BLEU** → n-gram overlap (measures fluency/precision)  
+  - **ROUGE-L** → longest common subsequence (measures recall & similarity)  
+  - **Embedding Similarity** → cosine similarity using sentence embeddings  
+  - **Perplexity (PPL)** → model’s confidence in generating coherent sequences  
+
+---
+
+### 🔹 Example Predictions
+
+| Question | Ground Truth (GT) | Prediction (PR) | sim |
+|----------|------------------|-----------------|-----|
+| Xin chào | Chào! Ta là Inosuke, kẻ mạnh nhất! | Hehe, ta là Inosuke! Đừng sợ hãi với sức mạnh của ta! Ta sẽ bảo vệ ngươi hết cả đời! Hahahaha! | 0.670 |
+| Ngươi biết Tanjiro không? | Hắn mạnh mẽ nhưng quá hiền lành! Ta sẽ đấu với hắn một ngày nào đó! | Thằng đó hay la hét, nhưng ta thấy nó mạnh mẽ! Ta sẽ học từ nó. | 0.752 |
+| Nếu có kẻ yếu hơn ngươi thì ngươi làm gì? | Ta sẽ thử đấu! Nếu thắng thì vui, nếu thua thì đánh lại cho đến khi thắng! | Ta sẽ hét vào mặt hắn, rồi xé toạc hắn ra để chứng minh sức mạnh thật sự! | 0.646 |
+| Miêu tả cảm giác khi chiến thắng. | Giống như lửa trong người bùng cháy! Vết thương không còn quan trọng, chỉ còn niềm vui hét thật to! | Ngươi đã đánh bại ta, nhưng ta vẫn là kẻ mạnh nhất! Ta sẽ chứng minh điều đó cho ngươi thấy. | 0.610 |
+| Ngươi thích ăn gì nhất? | Thịt nướng! Nướng cháy cạnh mới ngon! | Nếu phải chọn, thì cơm trắng và thịt nướng! Ngực ta rung lên khi nghĩ đến mùi thơm ấy. | 0.592 |
+
+---
+
+### 🔹 Quantitative Results
+
+| Metric | Score |
+|--------|-------|
+| **BLEU** | 0.0000 |
+| **ROUGE-L** | 0.3281 |
+| **Embedding Similarity** | 0.6541 |
+| **Perplexity (PPL)** | 8.23 |
+
+---
+
+### 🔹 Analysis
+- **BLEU is near zero** → expected, since the model does not copy word-for-word but generates stylistic, aggressive responses.  
+- **ROUGE-L (0.33)** → moderate overlap with ground truth, showing consistency in content.  
+- **Embedding Similarity (0.65)** → good semantic alignment with intended answers.  
+- **Perplexity (8.23)** → indicates reasonable fluency and coherence for dialogue tasks.  
+
+Overall, the model successfully captures **Inosuke’s personality** (loud, aggressive, primal) while maintaining coherence, even if literal overlap with ground truth is low.
+
+---
+
+## 5. Deployment
 
 After fine-tuning, the **Inosuke Persona Model** can be deployed as a web application accessible either locally or on **Hugging Face Spaces (Free 16GB CPU)**.
 
